@@ -3,11 +3,10 @@ import SwiftUI
 #if canImport(UIKit)
 extension Animation {
     /// Create a UIPropertyAnimator that matches this Animation.
-    public var uiPropertyAnimator: UIViewPropertyAnimator {
-        let duration = self.duration ?? 0.25
-        let controlPoints = self.controlPoints ?? .linear
+    public var uiPropertyAnimator: UIViewPropertyAnimator? {
+        guard let controlPoints = self.controlPoints else { return nil }
         return UIViewPropertyAnimator(
-            duration: duration,
+            duration: self.duration ?? 0.35,
             controlPoint1: controlPoints.cp1,
             controlPoint2: controlPoints.cp2
         )
@@ -21,20 +20,29 @@ extension Animation {
     /// - Parameters:
     ///   - context: The context to modify
     ///   - allowsImplicitAnimation: Whether to enable implicit animations.
-    func applyToContext(_ context: NSAnimationContext, allowsImplicitAnimation: Bool) {
-        context.duration = self.duration ?? 0.25
-        context.timingFunction = self.timingFunction
+    /// - Throws:
+    ///    - Error if the animation can't be applied.
+    func applyToContext(_ context: NSAnimationContext, allowsImplicitAnimation: Bool) throws {
+        guard let timingFunction = self.timingFunction else {
+            throw MatchedAnimationError.noTimingFunction
+        }
+        context.duration = self.duration ?? 0.2
+        context.timingFunction = timingFunction
         context.allowsImplicitAnimation = allowsImplicitAnimation
     }
     /// Create a timing function that matches this Animation.
-    public var timingFunction: CAMediaTimingFunction {
-        let p = self.controlPoints ?? .linear
+    public var timingFunction: CAMediaTimingFunction? {
+        guard let p = self.controlPoints else { return nil }
         return CAMediaTimingFunction(
             controlPoints: Float(p.cp1.x), Float(p.cp1.y), Float(p.cp2.x), Float(p.cp2.y)
         )
     }
 }
 #endif
+
+enum MatchedAnimationError: Error {
+    case noTimingFunction
+}
 
 extension Animation {
     var duration: Double? {
