@@ -3,10 +3,15 @@ import SwiftUI
 #if canImport(UIKit)
 extension Animation {
     /// Create a UIPropertyAnimator that matches this Animation.
+    ///
+    /// Returns nil if anmy required values of the animation couldn't be found.
     public var uiPropertyAnimator: UIViewPropertyAnimator? {
-        guard let controlPoints = self.controlPoints else { return nil }
+        let p = parse()
+        guard let duration = p.duration,
+              let controlPoints = p.controlPoints
+        else { return nil }
         return UIViewPropertyAnimator(
-            duration: self.duration ?? 0.35,
+            duration: duration,
             controlPoint1: controlPoints.cp1,
             controlPoint2: controlPoints.cp2
         )
@@ -22,135 +27,47 @@ extension Animation {
     ///   - allowsImplicitAnimation: Whether to enable implicit animations.
     /// - Throws:
     ///    - Error if the animation can't be applied.
-    func applyToContext(_ context: NSAnimationContext, allowsImplicitAnimation: Bool) throws {
-        guard let timingFunction = self.timingFunction else {
-            throw MatchedAnimationError.noTimingFunction
+    public func applyToContext(_ context: NSAnimationContext, allowsImplicitAnimation: Bool) throws {
+        let p = parse()
+        guard let duration = p.duration else {
+            throw MatchedAnimationError.missingDuration
         }
-        context.duration = self.duration ?? 0.35
-        context.timingFunction = timingFunction
+        guard let controlPoints = p.controlPoints else {
+            throw MatchedAnimationError.missingContolPoints
+        }
+        context.duration = duration
+        context.timingFunction = CAMediaTimingFunction(controlPoints: controlPoints)
         context.allowsImplicitAnimation = allowsImplicitAnimation
     }
-    /// Create a timing function that matches this Animation.
-    public var timingFunction: CAMediaTimingFunction? {
-        guard let p = self.controlPoints else { return nil }
-        return CAMediaTimingFunction(
-            controlPoints: Float(p.cp1.x), Float(p.cp1.y), Float(p.cp2.x), Float(p.cp2.y)
-        )
+}
+extension CAMediaTimingFunction {
+    init(controlPoints p: ControlPoints) {
+        self.init(controlPoints: Float(p.cp1.x), Float(p.cp1.y), Float(p.cp2.x), Float(p.cp2.y))
     }
 }
 #endif
 
 enum MatchedAnimationError: Error {
-    case noTimingFunction
+    case missingDuration
+    case missingContolPoints
 }
 
 extension Animation {
-    var duration: Double? {
-        guard let base = Mirror(reflecting: self).children.first else { return nil }
-        var output = ParsedDuration()
+
+    func parse() -> ParsedAnimation {
+        var output = ParsedAnimation()
+        guard let base = Mirror(reflecting: self).children.first else { return output }
         parseAnimation(&output, mirror: Mirror(reflecting: base.value))
-        return output.value
+        return output
     }
-}
 
-struct ParsedDuration {
-    var duration: Double?
-    var speed: Double?
-}
-extension ParsedDuration {
-    var value: Double? {
-        guard let d = duration else { return nil }
-        guard let s = speed else { return d }
-        return d * s
+    /// The duration of the animation, if available.
+    var duration: Double? {
+        parse().duration
     }
-}
 
-func parseAnimation(_ output: inout ParsedDuration, mirror: Mirror) {
-    let labels = mirror.children.map(\.label)
-    switch labels {
-    case ["duration", "curve"]:
-        parseBezierAnimation(&output, mirror: mirror)
-    case ["animation", "speed"]:
-        parseSpeedAnimation(&output, mirror: mirror)
-    default:
-        break
-    }
-}
-
-func parseBezierAnimation(_ output: inout ParsedDuration, mirror: Mirror) {
-    for c in mirror.children {
-        switch c.label {
-        case "duration":
-            output.duration = c.value as? Double
-        default:
-            break
-        }
-    }
-}
-
-func parseSpeedAnimation(_ output: inout ParsedDuration, mirror: Mirror) {
-    for c in mirror.children {
-        switch c.label {
-        case "speed":
-            output.speed = c.value as? Double
-        case "animation":
-            parseAnimation(&output, mirror: Mirror(reflecting: c.value))
-        default:
-            break
-        }
-    }
-}
-
-struct ControlPoints: Equatable {
-    var cp1: CGPoint
-    var cp2: CGPoint
-}
-
-extension ControlPoints {
-    static var linear: Self {
-        .init(
-            cp1: .init(x: 0, y: 0),
-            cp2: .init(x: 1, y: 1)
-        )
-    }
-}
-
-extension Animation {
+    /// The cubic control points for the animation, if available.
     var controlPoints: ControlPoints? {
-
-        /// The SwiftUI Animation to match
-        let animation = Animation.easeInOut(duration: 1)
-        print("input", animation)
-        //BezierAnimation(duration: 1.0, curve: SwiftUI.(unknown context at $7fff5d38c400).BezierTimingCurve(ax: -2.0, bx:   3.0,  cx: 0.0,  ay: -2.0, by: 3.0, cy: 0.0))
-        //BezierAnimation(duration: 1.0, curve: SwiftUI.(unknown context at $7fff5d38c400).BezierTimingCurve(ax:  0.52, bx: -0.78, cx: 1.26, ay: -2.0, by: 3.0, cy: 0.0))
-
-        /// Copy the quadratic points
-        let startA = CGPoint(x: -0.52, y: -3.0)
-        let endA = CGPoint(x: -0.78, y: 3.0)
-        let controlA = CGPoint(x: 1.26, y: 0.0)
-
-        /// Copy the quadratic points
-        let n: CGFloat = 1
-        let start = CGPoint(x: startA.x/n, y: startA.y/n)
-        let end = CGPoint(x: endA.x/n, y: endA.y/n)
-        let control = CGPoint(x: controlA.x/n, y: controlA.y/n)
-
-        let cp1 = CGPoint(
-            x: ((2 * control.x) + start.x) / 3,
-            y: ((2 * control.y) + start.y) / 3
-        )
-        let cp2 = CGPoint(
-            x: ((2 * control.x) + end.x) / 3,
-            y: ((2 * control.y) + end.y) / 3
-        )
-
-        // Constructing an animation from control points matches SwiftUI and UIKit
-        let curve = Animation.timingCurve(cp1.x, cp1.y, cp2.x, cp2.y, duration: 1)
-        print("curve", curve)
-
-        print("cp1", cp1)
-        print("cp2", cp2)
-
-        return ControlPoints(cp1: cp1, cp2: cp1)
+        parse().controlPoints
     }
 }
