@@ -25,7 +25,7 @@ struct ContentView: View {
                             size: self.size,
                             position: self.position(in: g.size)
                         )
-                        UIKitBox(
+                        RepresentedBox(
                             size: self.size,
                             position: self.position(in: g.size)
                         )
@@ -66,7 +66,7 @@ struct SwiftUIBox: View {
 }
 
 #if canImport(UIKit)
-struct UIKitBox: UIViewRepresentable {
+struct RepresentedBox: UIViewRepresentable {
     let size: CGSize
     let position: CGPoint
     func makeUIView(context: Context) -> UIView {
@@ -85,7 +85,7 @@ struct UIKitBox: UIViewRepresentable {
 #endif
 
 #if canImport(AppKit)
-struct UIKitBox: NSViewRepresentable {
+struct RepresentedBox: NSViewRepresentable {
     let size: CGSize
     let position: CGPoint
     func makeNSView(context: Context) -> NSView {
