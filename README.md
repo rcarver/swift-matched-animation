@@ -23,8 +23,7 @@ struct BoxView: UIViewRepresentable {
 }
 ```
 
-![image](https://user-images.githubusercontent.com/2343/146658041-6201457c-957e-4a34-bf67-f499a3d03053.png)
-
+![RocketSim_Recording_iPhone_13_2021-12-18_15 22 41](https://user-images.githubusercontent.com/2343/146658069-dba5fd25-020d-4a2d-aa00-d8e87d3b98ff.gif)
 
 ## Limitations
 
