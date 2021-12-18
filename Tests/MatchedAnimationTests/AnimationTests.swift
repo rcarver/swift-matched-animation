@@ -17,16 +17,19 @@ final class AnimationDurationTests: XCTestCase {
 final class AnimationControlPointTests: XCTestCase {
     func test_linear() throws {
         let p = try XCTUnwrap(Animation.linear.controlPoints)
-        XCTAssertEqual(p.cp1, CGPoint(x: 0, y: 0))
+        print(Animation.linear.parse())
+        XCTAssertEqual(p.cp1, CGPoint(x: 2.0/3.0, y: 2.0/3.0))
         XCTAssertEqual(p.cp2, CGPoint(x: 1, y: 1))
     }
     func test_timingCurve_linear() throws {
         let p = try XCTUnwrap(Animation.timingCurve(0, 0, 1, 1).controlPoints)
-        XCTAssertEqual(p.cp1, CGPoint(x: 0, y: 0))
+        XCTAssertEqual(p.cp1, CGPoint(x: 2.0/3.0, y: 2.0/3.0))
         XCTAssertEqual(p.cp2, CGPoint(x: 1, y: 1))
     }
     func test_timingCurve_other() throws {
         let p = try XCTUnwrap(Animation.timingCurve(0.17,0.67,0.85,0.65).controlPoints)
+        print(Animation.timingCurve(0.17,0.67,0.85,0.65)
+                .parse())
         XCTAssertEqual(p.cp1, CGPoint(x: 0.17, y: 0.67))
         XCTAssertEqual(p.cp2, CGPoint(x: 0.85, y: 0.65))
     }

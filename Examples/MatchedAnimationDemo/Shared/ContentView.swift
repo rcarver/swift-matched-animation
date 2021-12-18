@@ -9,6 +9,7 @@ struct ContentView: View {
     var size: CGSize {
         CGSize(width: 40, height: 50)
     }
+
     func position(in container: CGSize) -> CGPoint {
         CGPoint(
             x: flag ? container.width - self.size.width : 0,

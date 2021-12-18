@@ -41,7 +41,7 @@ extension Animation {
     }
 }
 extension CAMediaTimingFunction {
-    init(controlPoints p: ControlPoints) {
+    convenience init(controlPoints p: ControlPoints) {
         self.init(controlPoints: Float(p.cp1.x), Float(p.cp1.y), Float(p.cp2.x), Float(p.cp2.y))
     }
 }

@@ -46,8 +46,8 @@ struct ControlPoints: Equatable {
 extension BezierPoints {
     var controlPoints: ControlPoints {
         let cp1 = CGPoint(
-            x: ((2 * cx) + ax) / 3,
-            y: ((2 * cy) + ay) / 3
+            x: ((2 * cx) - ax) / 3,
+            y: ((2 * cy) - ay) / 3
         )
         let cp2 = CGPoint(
             x: ((2 * cx) + bx) / 3,
@@ -56,8 +56,6 @@ extension BezierPoints {
         return ControlPoints(cp1: cp1, cp2: cp2)
     }
 }
-
-// MARK: - Parsers
 
 func parseAnimation(_ output: inout ParsedAnimation, mirror: Mirror) {
     let labels = mirror.children.map(\.label)
