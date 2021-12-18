@@ -1,3 +1,3 @@
-# swift-matched-animator
+# MatchedAnimation
 
-A description of this package.
+Match animations in SwiftUI and UIKit/AppKit.
