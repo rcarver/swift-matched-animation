@@ -3,10 +3,11 @@ import SwiftUI
 #if canImport(UIKit)
 /// Perform the body in a UIKit animation matching the SwiftUI animation.
 public func withMatchedAnimation(_ animation: Animation? = .default, _ body: @escaping () -> Void) {
-    guard let animation = animation else {
+    guard let animation = animation,
+          let animator = animation.uiPropertyAnimator
+    else {
         return body()
     }
-    let animator = animation.uiPropertyAnimator
     animator.addAnimations(body)
     withAnimation(animation) {
         animator.startAnimation()
@@ -21,7 +22,7 @@ public func withMatchedAnimation(_ animation: Animation? = .default, _ body: @es
 public func withMatchedAnimation(_ animation: Animation?, allowsImplicitAnimation: Bool = true, _ body: @escaping () -> Void) {
     guard let animation = animation else {
         return body()
-    }    
+    }
     NSAnimationContext.runAnimationGroup { context in
         do {
             try animation.applyToContext(

@@ -26,7 +26,7 @@ extension Animation {
         guard let timingFunction = self.timingFunction else {
             throw MatchedAnimationError.noTimingFunction
         }
-        context.duration = self.duration ?? 0.2
+        context.duration = self.duration ?? 0.35
         context.timingFunction = timingFunction
         context.allowsImplicitAnimation = allowsImplicitAnimation
     }
@@ -46,10 +46,58 @@ enum MatchedAnimationError: Error {
 
 extension Animation {
     var duration: Double? {
-        let m = Mirror(reflecting: self)
-        guard let base = m.children.first else { return nil }
-        let bm = Mirror(reflecting: base.value)
-        return bm.children.first?.value as? Double
+        guard let base = Mirror(reflecting: self).children.first else { return nil }
+        var output = ParsedDuration()
+        parseAnimation(&output, mirror: Mirror(reflecting: base.value))
+        return output.value
+    }
+}
+
+struct ParsedDuration {
+    var duration: Double?
+    var speed: Double?
+}
+extension ParsedDuration {
+    var value: Double? {
+        guard let d = duration else { return nil }
+        guard let s = speed else { return d }
+        return d * s
+    }
+}
+
+func parseAnimation(_ output: inout ParsedDuration, mirror: Mirror) {
+    let labels = mirror.children.map(\.label)
+    switch labels {
+    case ["duration", "curve"]:
+        parseBezierAnimation(&output, mirror: mirror)
+    case ["animation", "speed"]:
+        parseSpeedAnimation(&output, mirror: mirror)
+    default:
+        break
+    }
+}
+
+func parseBezierAnimation(_ output: inout ParsedDuration, mirror: Mirror) {
+    for c in mirror.children {
+        switch c.label {
+        case "duration":
+            output.duration = c.value as? Double
+        default:
+            break
+        }
+    }
+}
+
+func parseSpeedAnimation(_ output: inout ParsedDuration, mirror: Mirror) {
+    for c in mirror.children {
+        switch c.label {
+        case "speed":
+            output.speed = c.value as? Double
+        case "animation":
+            parseAnimation(&output, mirror: Mirror(reflecting: c.value))
+        default:
+            break
+        }
     }
 }
 
