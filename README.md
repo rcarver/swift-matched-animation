@@ -23,6 +23,9 @@ struct BoxView: UIViewRepresentable {
 }
 ```
 
+![image](https://user-images.githubusercontent.com/2343/146658023-54d60878-980e-43a5-aba8-c02f45ec4ebf.png)
+
+
 ## Limitations
 
 * FIXME: bezier conversions are not quite right 
