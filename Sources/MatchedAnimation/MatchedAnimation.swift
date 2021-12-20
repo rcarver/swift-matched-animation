@@ -24,7 +24,8 @@ public func withMatchedAnimation(_ animation: Animation? = .default, _ body: @es
 /// If the animation cannot be matched, no animation is performed.
 public func withMatchedAnimation(_ animation: Animation?, allowsImplicitAnimation: Bool = true, _ body: @escaping () -> Void) {
     guard let animation = animation else {
-        return body()
+        withoutNSAnimation(body)
+        return
     }
     NSAnimationContext.runAnimationGroup { context in
         do {
@@ -34,8 +35,15 @@ public func withMatchedAnimation(_ animation: Animation?, allowsImplicitAnimatio
             )
             withAnimation(animation, body)
         } catch {
-            body()
+            withoutNSAnimation(body)
         }
+    }
+}
+// Remove default animations that would be used by animator() proxy.
+private func withoutNSAnimation(_ body: @escaping () -> Void) {
+    NSAnimationContext.runAnimationGroup { context in
+        context.duration = 0
+        body()
     }
 }
 #endif

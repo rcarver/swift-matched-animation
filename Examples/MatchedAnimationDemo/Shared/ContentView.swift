@@ -3,8 +3,10 @@ import MatchedAnimation
 
 struct ContentView: View {
 
+    static let animation: Animation? = .easeInOut(duration: 1)
+
     @State var flag: Bool = false
-    @State var animation: Animation? = .easeInOut(duration: 1)
+    @State var isAnimated: Bool = true
 
     var size: CGSize {
         CGSize(width: 40, height: 50)
@@ -60,16 +62,17 @@ struct ContentView: View {
                 }
                 .padding(.vertical, 100)
                 // Implicit animations work.
-                //.animation(animation, value: flag)
+                //.animation(isAnimated ? Self.animation : nil, value: flag)
             }
 
-            HStack {
+            VStack {
                 Button {
                     // Explicit animations work
-                    withAnimation(animation) {
+                    withAnimation(isAnimated ? Self.animation : nil) {
                         flag.toggle()
                     }
                 } label: { Text("Flip") }
+                Toggle("Animated", isOn: $isAnimated)
             }
             .frame(maxHeight: .infinity, alignment: .bottom)
         }
@@ -165,7 +168,8 @@ extension RepresentedBox: NSViewRepresentable {
     }
     func updateNSView(_ view: NSView, context: Context) {
         withMatchedAnimation(context.transaction.animation) {
-            view.subviews.first?.frame = CGRect(origin: position, size: size)
+            // Using animator proxy shows that animations are removed from implicit and explicit animations
+            view.subviews.first?.animator().frame = CGRect(origin: position, size: size)
         }
     }
 }
@@ -175,6 +179,7 @@ extension RepresentedContentBox: NSViewControllerRepresentable {
     }
     func updateNSViewController(_ controller: NSHostingController<ViewWrapper>, context: Context) {
         withMatchedAnimation(context.transaction.animation) {
+            // Not using animator proxy shows that animations are applied to implicit animations.
             controller.view.frame.origin = offset
             context.coordinator.model.content = content
         }
