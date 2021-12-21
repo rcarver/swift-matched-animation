@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-matched-animations",
+    name: "swift-matched-animation",
     platforms: [
         .iOS(.v13),
         .macOS(.v11)
